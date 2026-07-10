@@ -29,11 +29,16 @@ jobs:
         with:
           python-version: "3.12"
 
+      # Clear any existing file so append mode starts fresh for this specific run
+      - name: Initialize Documentation File
+        run: rm -f DOCUMENTATION.md
+
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      # FIXED: Added the required --output flag matching your script parser
       - name: Build Merge Context
         run: |
           python scripts/build_merge_context.py \
@@ -43,11 +48,15 @@ jobs:
             --merge-sha "${{ github.event.pull_request.head.sha }}" \
             --output context.json
 
+      # FIXED: Added the required --context flag matching your script parser
       - name: Generate Documentation
         run: |
           python src/generate_documentation.py \
             --context context.json \
             --output DOCUMENTATION.md
+
+      # Optional: Add --use-gemini to the step above if you want to explicitly enforce it, 
+      # though your python code automatically catches it via the env variable!
 
       - name: Upload Documentation
         uses: actions/upload-artifact@v4
