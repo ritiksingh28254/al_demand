@@ -1,5 +1,5 @@
 {
-  "source_branch": "feature/add-merge-mode",
+  "source_branch": "feat/test",
   "target_branch": "main",
   "is_target_branch_empty": false,
   "git_data_file": "samples/git_diff.sample"

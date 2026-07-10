@@ -15,11 +15,26 @@ Automates creation of `DOCUMENTATION.md` from GitHub Pull/Merge Request metadata
 python src/generate_documentation.py --context samples/context.initial.json
 ```
 
-Generate merge-mode documentation:
+Generate merge-mode documentation from the **actual git diff** (not the static sample):
 
 ```bash
-python src/generate_documentation.py --context samples/context.merge.json --output output/DOCUMENTATION.md
+python scripts/build_merge_context.py --source-branch main --target-branch bc218f0 --output context.json
+python src/generate_documentation.py --context context.json --output DOCUMENTATION.md
 ```
+
+For CI-style runs with explicit SHAs (same inputs as the GitHub Action):
+
+```bash
+python scripts/build_merge_context.py \
+  --source-branch feat/test \
+  --target-branch main \
+  --base-sha <target-branch-sha-before-merge> \
+  --merge-sha <merge-commit-sha> \
+  --output context.json
+python src/generate_documentation.py --context context.json --output DOCUMENTATION.md
+```
+
+The sample file `samples/context.merge.json` points at `samples/git_diff.sample`, which is only a demo payload. Use `build_merge_context.py` when you want documentation that reflects real branch changes (for example a new `readme1.py` file).
 
 ## Context File Format
 

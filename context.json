@@ -1,0 +1,6 @@
+{
+  "source_branch": "feat/test",
+  "target_branch": "main",
+  "is_target_branch_empty": false,
+  "git_data": "diff --git a/DOCUMENTATION.md b/DOCUMENTATION1.md\nsimilarity index 100%\nrename from DOCUMENTATION.md\nrename to DOCUMENTATION1.md\ndiff --git a/readme1.py b/readme1.py\nnew file mode 100644\nindex 0000000..16a6fb0\n--- /dev/null\n+++ b/readme1.py\n@@ -0,0 +1 @@\n+print(\"DKJ\")\n\\ No newline at end of file\ndiff --git a/samples/context.initial.json b/samples/context.initial.json\nindex 9af15f9..cf09609 100644\n--- a/samples/context.initial.json\n+++ b/samples/context.initial.json\n@@ -1,5 +1,5 @@\n {\n-  \"source_branch\": \"feature/initial-setup\",\n+  \"source_branch\": \"feat/test\",\n   \"target_branch\": \"main\",\n   \"is_target_branch_empty\": true,\n   \"git_data\": \"A .gitignore\\nA DOCUMENTATION.md\\nA README.md\\nA requirements.txt\\nA samples/context.initial.json\\nA samples/context.merge.json\\nA samples/git_diff.sample\\nA src/generate_documentation.py\\nA src/__init__.py\"\n"
+}

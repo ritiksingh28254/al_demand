@@ -35,6 +35,8 @@ class FileChange:
 DIFF_FILE_HEADER = re.compile(r"^diff --git a/(.*) b/(.*)$")
 DIFF_NEW_FILE = re.compile(r"^new file mode")
 DIFF_DELETED_FILE = re.compile(r"^deleted file mode")
+DIFF_RENAME_FROM = re.compile(r"^rename from (.+)$")
+DIFF_RENAME_TO = re.compile(r"^rename to (.+)$")
 HUNK_HEADER = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")
 
 
@@ -102,6 +104,11 @@ def parse_diff_paths(git_diff: str) -> list[FileChange]:
             current_status = "added"
         elif current_path and DIFF_DELETED_FILE.match(line):
             current_status = "deleted"
+        elif current_path:
+            rename_to = DIFF_RENAME_TO.match(line)
+            if rename_to:
+                current_status = "renamed"
+                current_path = rename_to.group(1)
 
     if current_path:
         changes.append(
