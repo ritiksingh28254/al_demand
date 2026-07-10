@@ -1,27 +1,75 @@
 # Merge Request Analysis & Change Documentation
 
-This merge from `feat/test` into `main` introduces 1 added, 1 modified, and 0 deleted file(s). The changes are grouped below by directory and logical impact.
+This merge from `feat/runner1` into `main` introduces 1 added, 1 modified, and 0 deleted file(s). The changes are grouped below by directory and logical impact.
 
-- **Source Branch:** `feat/test`
+- **Source Branch:** `feat/runner1`
 - **Target Branch:** `main`
 
 ## `(root)`
 
-### `DOCUMENTATION1.md` (renamed)
-- **Purpose:** Markdown documentation describing project behavior or usage.
-- **Changes:** No line-level diff details available.
-
-### `readme1.py` (added)
-- **Purpose:** Python source module implementing application or tooling logic.
-- **Changes:**
-  - Hunk: `@@ -0,0 +1 @@`
-  - Addition: `print("DKJ")`
-
-## `samples`
-
-### `samples/context.initial.json` (modified)
+### `context.json` (modified)
 - **Purpose:** Structured JSON configuration or sample input payload.
 - **Changes:**
-  - Hunk: `@@ -1,5 +1,5 @@`
-  - Removal: `  "source_branch": "feature/initial-setup",`
-  - Addition: `  "source_branch": "feat/test",`
+  - Hunk: `@@ -2,5 +2,5 @@`
+  - Removal: `  "git_data": "diff --git a/DOCUMENTATION.md b/DOCUMENTATION1.md\nsimilarity index 100%\nrename from DOCUMENTATION.md\nrename to DOCUMENTATION1.md\ndiff --git a/readme1.py b/readme1.py\nnew file mode 100644\nindex 0000000..16a6fb0\n--- /dev/null\n+++ b/readme1.py\n@@ -0,0 +1 @@\n+print(\"DKJ\")\n\\ No newline at end of file\ndiff --git a/samples/context.initial.json b/samples/context.initial.json\nindex 9af15f9..cf09609 100644\n--- a/samples/context.initial.json\n+++ b/samples/context.initial.json\n@@ -1,5 +1,5 @@\n {\n-  \"source_branch\": \"feature/initial-setup\",\n+  \"source_branch\": \"feat/test\",\n   \"target_branch\": \"main\",\n   \"is_target_branch_empty\": true,\n   \"git_data\": \"A .gitignore\\nA DOCUMENTATION.md\\nA README.md\\nA requirements.txt\\nA samples/context.initial.json\\nA samples/context.merge.json\\nA samples/git_diff.sample\\nA src/generate_documentation.py\\nA src/__init__.py\"\n"`
+  - Addition: `  "git_data": "diff --git a/DOCUMENTATION.md b/DOCUMENTATION.md\ndeleted file mode 100644\nindex b17536c..0000000\n--- a/DOCUMENTATION.md\n+++ /dev/null\n@@ -1,27 +0,0 @@\n-# Merge Request Analysis & Change Documentation\n-\n-This merge from `feat/test` into `main` introduces 1 added, 1 modified, and 0 deleted file(s). The changes are grouped below by directory and logical impact.\n-\n-- **Source Branch:** `feat/test`\n-- **Target Branch:** `main`\n-\n-## `(root)`\n-\n-### `DOCUMENTATION1.md` (renamed)\n-- **Purpose:** Markdown documentation describing project behavior or usage.\n-- **Changes:** No line-level diff details available.\n-\n-### `readme1.py` (added)\n-- **Purpose:** Python source module implementing application or tooling logic.\n-- **Changes:**\n-  - Hunk: `@@ -0,0 +1 @@`\n-  - Addition: `print(\"DKJ\")`\n-\n-## `samples`\n-\n-### `samples/context.initial.json` (modified)\n-- **Purpose:** Structured JSON configuration or sample input payload.\n-- **Changes:**\n-  - Hunk: `@@ -1,5 +1,5 @@`\n-  - Removal: `  \"source_branch\": \"feature/initial-setup\",`\n-  - Addition: `  \"source_branch\": \"feat/test\",`\ndiff --git a/README.md b/README.md\nindex 566dfd9..0550da5 100644\n--- a/README.md\n+++ b/README.md\n@@ -15,27 +15,12 @@ Automates creation of `DOCUMENTATION.md` from GitHub Pull/Merge Request metadata\n python src/generate_documentation.py --context samples/context.initial.json\n ```\n \n-Generate merge-mode documentation from the **actual git diff** (not the static sample):\n+Generate merge-mode documentation:\n \n ```bash\n-python scripts/build_merge_context.py --source-branch main --target-branch bc218f0 --output context.json\n-python src/generate_documentation.py --context context.json --output DOCUMENTATION.md\n+python src/generate_documentation.py --context samples/context.merge.json --output output/DOCUMENTATION.md\n ```\n \n-For CI-style runs with explicit SHAs (same inputs as the GitHub Action):\n-\n-```bash\n-python scripts/build_merge_context.py \\\n-  --source-branch feat/test \\\n-  --target-branch main \\\n-  --base-sha <target-branch-sha-before-merge> \\\n-  --merge-sha <merge-commit-sha> \\\n-  --output context.json\n-python src/generate_documentation.py --context context.json --output DOCUMENTATION.md\n-```\n-\n-The sample file `samples/context.merge.json` points at `samples/git_diff.sample`, which is only a demo payload. Use `build_merge_context.py` when you want documentation that reflects real branch changes (for example a new `readme1.py` file).\n-\n ## Context File Format\n \n ```json\ndiff --git a/context.json b/context.json\ndeleted file mode 100644\nindex 9b4bb0c..0000000\n--- a/context.json\n+++ /dev/null\n@@ -1,6 +0,0 @@\n-{\n-  \"source_branch\": \"feat/test\",\n-  \"target_branch\": \"main\",\n-  \"is_target_branch_empty\": false,\n-  \"git_data\": \"diff --git a/DOCUMENTATION.md b/DOCUMENTATION1.md\\nsimilarity index 100%\\nrename from DOCUMENTATION.md\\nrename to DOCUMENTATION1.md\\ndiff --git a/readme1.py b/readme1.py\\nnew file mode 100644\\nindex 0000000..16a6fb0\\n--- /dev/null\\n+++ b/readme1.py\\n@@ -0,0 +1 @@\\n+print(\\\"DKJ\\\")\\n\\\\ No newline at end of file\\ndiff --git a/samples/context.initial.json b/samples/context.initial.json\\nindex 9af15f9..cf09609 100644\\n--- a/samples/context.initial.json\\n+++ b/samples/context.initial.json\\n@@ -1,5 +1,5 @@\\n {\\n-  \\\"source_branch\\\": \\\"feature/initial-setup\\\",\\n+  \\\"source_branch\\\": \\\"feat/test\\\",\\n   \\\"target_branch\\\": \\\"main\\\",\\n   \\\"is_target_branch_empty\\\": true,\\n   \\\"git_data\\\": \\\"A .gitignore\\\\nA DOCUMENTATION.md\\\\nA README.md\\\\nA requirements.txt\\\\nA samples/context.initial.json\\\\nA samples/context.merge.json\\\\nA samples/git_diff.sample\\\\nA src/generate_documentation.py\\\\nA src/__init__.py\\\"\\n\"\n-}\ndiff --git a/readme2.py b/readme2.py\ndeleted file mode 100644\nindex e69de29..0000000\ndiff --git a/samples/context.merge.json b/samples/context.merge.json\nindex 08e1079..59e53b7 100644\n--- a/samples/context.merge.json\n+++ b/samples/context.merge.json\n@@ -1,5 +1,5 @@\n {\n-  \"source_branch\": \"feat/test\",\n+  \"source_branch\": \"feature/add-merge-mode\",\n   \"target_branch\": \"main\",\n   \"is_target_branch_empty\": false,\n   \"git_data_file\": \"samples/git_diff.sample\"\ndiff --git a/scripts/build_merge_context.py b/scripts/build_merge_context.py\nindex bde9b65..60d563c 100644\n--- a/scripts/build_merge_context.py\n+++ b/scripts/build_merge_context.py\n@@ -1,5 +1,4 @@\n-#!/usr/bin/env python3\n-\"\"\"Build merge context JSON from git for documentation generation.\"\"\"\n+\"\"\"Build context JSON for the documentation generator from git merge metadata.\"\"\"\n \n from __future__ import annotations\n \n@@ -9,86 +8,62 @@ import subprocess\n import sys\n from pathlib import Path\n \n-ZERO_SHA = \"0\" * 40\n+NULL_SHA = \"0\" * 40\n \n \n def run_git(*args: str) -> str:\n     result = subprocess.run(\n         [\"git\", *args],\n+        check=False,\n         capture_output=True,\n         text=True,\n-        check=False,\n     )\n     if result.returncode != 0:\n-        raise RuntimeError(\n-            f\"git {' '.join(args)} failed (exit {result.returncode}): {result.stderr.strip()}\"\n-        )\n+        return \"\"\n     return result.stdout\n \n \n-def sha_exists(sha: str) -> bool:\n-    if not sha or sha == ZERO_SHA:\n-        return False\n-    result = subprocess.run(\n-        [\"git\", \"rev-parse\", \"--verify\", f\"{sha}^{{commit}}\"],\n-        capture_output=True,\n-        text=True,\n-    )\n-    return result.returncode == 0\n-\n-\n-def is_target_empty(base_sha: str) -> bool:\n-    if not sha_exists(base_sha):\n+def is_empty_target(base_sha: str) -> bool:\n+    if not base_sha or base_sha == NULL_SHA:\n         return True\n     count = run_git(\"rev-list\", \"--count\", base_sha).strip()\n-    return int(count) == 0\n+    return count in {\"\", \"0\"}\n \n \n-def collect_git_data(base_sha: str, merge_sha: str, target_empty: bool) -> str:\n+def build_git_data(base_sha: str, merge_sha: str, target_empty: bool) -> str:\n     if target_empty:\n-        if sha_exists(merge_sha):\n-            return run_git(\"diff\", \"--root\", merge_sha)\n-        raise RuntimeError(\"merge-sha is required when the target branch is empty.\")\n-\n-    if not sha_exists(base_sha):\n-        raise RuntimeError(f\"base-sha {base_sha!r} does not resolve to a commit.\")\n-    if not sha_exists(merge_sha):\n-        raise RuntimeError(f\"merge-sha {merge_sha!r} does not resolve to a commit.\")\n-\n-    return run_git(\"diff\", f\"{base_sha}..{merge_sha}\")\n-\n-\n-def collect_git_data_from_branches(source_branch: str, target_branch: str) -> tuple[str, bool]:\n-    merge_base = run_git(\"merge-base\", target_branch, source_branch).strip()\n-    if not merge_base:\n-        raise RuntimeError(\n-            f\"Could not find a merge-base between {target_branch!r} and {source_branch!r}.\"\n+        status_output = run_git(\n+            \"diff-tree\",\n+            \"--no-commit-id\",\n+            \"--name-status\",\n+            \"-r\",\n+            merge_sha,\n         )\n+        if status_output.strip():\n+            lines = []\n+            for raw in status_output.splitlines():\n+                parts = raw.split(\"\\t\", 1)\n+                if len(parts) == 2:\n+                    lines.append(f\"{parts[0]} {parts[1]}\")\n+            return \"\\n\".join(lines)\n \n-    target_empty = int(run_git(\"rev-list\", \"--count\", merge_base).strip()) == 0\n-    if target_empty:\n-        head = run_git(\"rev-parse\", source_branch).strip()\n-        return run_git(\"diff\", \"--root\", head), True\n+        file_list = run_git(\"ls-tree\", \"-r\", \"--name-only\", merge_sha)\n+        return \"\\n\".join(f\"A {path}\" for path in file_list.splitlines() if path.strip())\n \n-    return run_git(\"diff\", f\"{merge_base}..{source_branch}\"), False\n+    diff = run_git(\"diff\", base_sha, merge_sha)\n+    if diff.strip():\n+        return diff\n+\n+    status_output = run_git(\"diff-tree\", \"--no-commit-id\", \"--name-status\", \"-r\", merge_sha)\n+    return status_output.replace(\"\\t\", \" \")\n \n \n def build_parser() -> argparse.ArgumentParser:\n-    parser = argparse.ArgumentParser(\n-        description=\"Build context JSON from git merge metadata for generate_documentation.py.\"\n-    )\n-    parser.add_argument(\"--source-branch\", required=True, help=\"PR head / feature branch name.\")\n-    parser.add_argument(\"--target-branch\", required=True, help=\"PR base / target branch name.\")\n-    parser.add_argument(\n-        \"--base-sha\",\n-        default=\"\",\n-        help=\"Target branch SHA before merge (GitHub pull_request.base.sha).\",\n-    )\n-    parser.add_argument(\n-        \"--merge-sha\",\n-        default=\"\",\n-        help=\"Merge commit SHA (GitHub pull_request.merge_commit_sha).\",\n-    )\n+    parser = argparse.ArgumentParser(description=\"Build merge context JSON for documentation generation.\")\n+    parser.add_argument(\"--source-branch\", required=True)\n+    parser.add_argument(\"--target-branch\", required=True)\n+    parser.add_argument(\"--base-sha\", required=True)\n+    parser.add_argument(\"--merge-sha\", required=True)\n     parser.add_argument(\n         \"--output\",\n         type=Path,\n@@ -99,17 +74,9 @@ def build_parser() -> argparse.ArgumentParser:\n \n \n def main(argv: list[str] | None = None) -> int:\n-    parser = build_parser()\n-    args = parser.parse_args(argv)\n-\n-    if args.base_sha and args.merge_sha:\n-        target_empty = is_target_empty(args.base_sha)\n-        git_data = collect_git_data(args.base_sha, args.merge_sha, target_empty)\n-    else:\n-        git_data, target_empty = collect_git_data_from_branches(\n-            args.source_branch,\n-            args.target_branch,\n-        )\n+    args = build_parser().parse_args(argv)\n+    target_empty = is_empty_target(args.base_sha)\n+    git_data = build_git_data(args.base_sha, args.merge_sha, target_empty)\n \n     payload = {\n         \"source_branch\": args.source_branch,\n@@ -117,10 +84,8 @@ def main(argv: list[str] | None = None) -> int:\n         \"is_target_branch_empty\": target_empty,\n         \"git_data\": git_data,\n     }\n-\n-    args.output.parent.mkdir(parents=True, exist_ok=True)\n-    args.output.write_text(json.dumps(payload, indent=2) + \"\\n\", encoding=\"utf-8\")\n-    print(f\"Wrote merge context to {args.output}\")\n+    args.output.write_text(json.dumps(payload, indent=2), encoding=\"utf-8\")\n+    print(f\"Wrote context to {args.output} (empty_target={target_empty})\")\n     return 0\n \n \ndiff --git a/src/generate_documentation.py b/src/generate_documentation.py\nindex 1b58605..e7de3be 100644\n--- a/src/generate_documentation.py\n+++ b/src/generate_documentation.py\n@@ -35,8 +35,6 @@ class FileChange:\n DIFF_FILE_HEADER = re.compile(r\"^diff --git a/(.*) b/(.*)$\")\n DIFF_NEW_FILE = re.compile(r\"^new file mode\")\n DIFF_DELETED_FILE = re.compile(r\"^deleted file mode\")\n-DIFF_RENAME_FROM = re.compile(r\"^rename from (.+)$\")\n-DIFF_RENAME_TO = re.compile(r\"^rename to (.+)$\")\n HUNK_HEADER = re.compile(r\"^@@ -(\\d+)(?:,(\\d+))? \\+(\\d+)(?:,(\\d+))? @@\")\n \n \n@@ -104,11 +102,6 @@ def parse_diff_paths(git_diff: str) -> list[FileChange]:\n             current_status = \"added\"\n         elif current_path and DIFF_DELETED_FILE.match(line):\n             current_status = \"deleted\"\n-        elif current_path:\n-            rename_to = DIFF_RENAME_TO.match(line)\n-            if rename_to:\n-                current_status = \"renamed\"\n-                current_path = rename_to.group(1)\n \n     if current_path:\n         changes.append(\n"`
+
+## `.github/workflows`
+
+### `.github/workflows/documentation.yml` (added)
+- **Purpose:** YAML configuration for runtime or CI/CD settings.
+- **Changes:**
+  - Hunk: `@@ -0,0 +1,53 @@`
+  - Addition: `name: Generate PR Documentation`
+  - Addition: ``
+  - Addition: `on:`
+  - Addition: `  pull_request:`
+  - Addition: `    types:`
+  - Addition: `      - opened`
+  - Addition: `      - synchronize`
+  - Addition: `      - reopened`
+  - Addition: ``
+  - Addition: `jobs:`
+  - Addition: `  generate-documentation:`
+  - Addition: `    runs-on: ubuntu-latest`
+  - Addition: ``
+  - Addition: `    permissions:`
+  - Addition: `      contents: read`
+  - Addition: `      pull-requests: write`
+  - Addition: ``
+  - Addition: `    steps:`
+  - Addition: `      - name: Checkout Repository`
+  - Addition: `        uses: actions/checkout@v4`
+  - Addition: `        with:`
+  - Addition: `          fetch-depth: 0`
+  - Addition: ``
+  - Addition: `      - name: Setup Python`
+  - Addition: `        uses: actions/setup-python@v5`
+  - Addition: `        with:`
+  - Addition: `          python-version: "3.12"`
+  - Addition: ``
+  - Addition: `      - name: Install Dependencies`
+  - Addition: `        run: |`
+  - Addition: `          python -m pip install --upgrade pip`
+  - Addition: `          pip install -r requirements.txt`
+  - Addition: ``
+  - Addition: `      - name: Build Merge Context`
+  - Addition: `        run: |`
+  - Addition: `          python scripts/build_merge_context.py \`
+  - Addition: `            --source-branch "${{ github.head_ref }}" \`
+  - Addition: `            --target-branch "${{ github.base_ref }}" \`
+  - Addition: `            --base-sha "${{ github.event.pull_request.base.sha }}" \`
+  - Addition: `            --merge-sha "${{ github.event.pull_request.head.sha }}" \`
+  - Addition: `            --output context.json`
+  - Addition: ``
+  - Addition: `      - name: Generate Documentation`
+  - Addition: `        run: |`
+  - Addition: `          python src/generate_documentation.py \`
+  - Addition: `            --context context.json \`
+  - Addition: `            --output DOCUMENTATION.md`
+  - Addition: ``
+  - Addition: `      - name: Upload Documentation`
+  - Addition: `        uses: actions/upload-artifact@v4`
+  - Addition: `        with:`
+  - Addition: `          name: pr-documentation`
+  - Addition: `          path: DOCUMENTATION.md`
