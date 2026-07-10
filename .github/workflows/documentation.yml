@@ -1,65 +1,68 @@
-name: Generate PR Documentation
+name: Generate Merge Documentation
 
 on:
   pull_request:
-    types:
-      - opened
-      - synchronize
-      - reopened
+    types: [closed]
+
+permissions:
+  contents: write
 
 jobs:
-  generate-documentation:
+  generate-docs:
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
 
-    permissions:
-      contents: read
-      pull-requests: write
-
-    env:
-      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-
     steps:
-      - name: Checkout Repository
+      - name: Checkout merge commit
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
           fetch-depth: 0
 
-      - name: Setup Python
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      # Clear any existing file so append mode starts fresh for this specific run
-      - name: Initialize Documentation File
-        run: rm -f DOCUMENTATION.md
+      # Since this runs on the merge commit, we don't clear the file; 
+      # we let the Python script read the existing target branch file and append to it.
 
-      - name: Install Dependencies
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
       # FIXED: Added the required --output flag matching your script parser
-      - name: Build Merge Context
+      - name: Build merge context
         run: |
           python scripts/build_merge_context.py \
-            --source-branch "${{ github.head_ref }}" \
-            --target-branch "${{ github.base_ref }}" \
+            --source-branch "${{ github.event.pull_request.head.ref }}" \
+            --target-branch "${{ github.event.pull_request.base.ref }}" \
             --base-sha "${{ github.event.pull_request.base.sha }}" \
-            --merge-sha "${{ github.event.pull_request.head.sha }}" \
+            --merge-sha "${{ github.event.pull_request.merge_commit_sha }}" \
             --output context.json
 
       # FIXED: Added the required --context flag matching your script parser
-      - name: Generate Documentation
+      - name: Generate documentation
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           python src/generate_documentation.py \
             --context context.json \
-            --output DOCUMENTATION.md
+            --output DOCUMENTATION.md \
+            --use-gemini
 
-      # Optional: Add --use-gemini to the step above if you want to explicitly enforce it, 
-      # though your python code automatically catches it via the env variable!
-
-      - name: Upload Documentation
-        uses: actions/upload-artifact@v4
-        with:
-          name: pr-documentation
-          path: DOCUMENTATION.md
+      - name: Commit and push documentation
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          
+          git add DOCUMENTATION.md
+          
+          if git diff --cached --quiet; then
+            echo "No documentation changes to commit."
+            exit 0
+          fi
+          
+          git commit -m "docs: update DOCUMENTATION.md after merge of PR #${{ github.event.pull_request.number }}"
+          git push origin HEAD:${{ github.event.pull_request.base.ref }}

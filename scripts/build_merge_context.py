@@ -98,6 +98,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
+    args = parser.get_default("output")
     args = parser.parse_args(argv)
 
     if args.base_sha and args.merge_sha:

@@ -231,16 +231,14 @@ def main(argv: list[str] | None = None) -> int:
             is_target_branch_empty=metadata.is_target_branch_empty,
         )
         print("Applied Gemini enrichment.")
-    elif args.use_gemini:
-        print("GEMINI_API_KEY not set; wrote base documentation without enrichment.")
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
     
-    # REQUIREMENT 1: Safe append mode with visual block separation
+    # REQUIREMENT 1: Safe Append Mode with structural block separation
     file_exists = args.output.is_file() and args.output.stat().st_size > 0
     with open(args.output, "a", encoding="utf-8") as f:
         if file_exists:
-            f.write("\n\n---\n\n")  # Section separator for existing entries
+            f.write("\n\n---\n\n")  # Keeps blocks neatly divided visually
         f.write(markdown)
 
     print(f"Appended documentation to {args.output}")
