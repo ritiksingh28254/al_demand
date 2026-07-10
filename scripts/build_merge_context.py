@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Build merge context JSON from git for documentation generation."""
 
 from __future__ import annotations
