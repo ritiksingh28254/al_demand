@@ -1,6 +1,0 @@
-{
-  "source_branch": "feat/test",
-  "target_branch": "main",
-  "is_target_branch_empty": true,
-  "git_data": "A .gitignore\nA DOCUMENTATION.md\nA README.md\nA requirements.txt\nA samples/context.initial.json\nA samples/context.merge.json\nA samples/git_diff.sample\nA src/generate_documentation.py\nA src/__init__.py"
-}

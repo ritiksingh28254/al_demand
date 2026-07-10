@@ -4,12 +4,11 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
+import os   
 import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable
 
 _SRC_DIR = Path(__file__).resolve().parent
 if str(_SRC_DIR) not in sys.path:
@@ -37,7 +36,6 @@ DIFF_NEW_FILE = re.compile(r"^new file mode")
 DIFF_DELETED_FILE = re.compile(r"^deleted file mode")
 DIFF_RENAME_FROM = re.compile(r"^rename from (.+)$")
 DIFF_RENAME_TO = re.compile(r"^rename to (.+)$")
-HUNK_HEADER = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")
 
 
 def parse_bool(value: str) -> bool:
@@ -122,52 +120,7 @@ def parse_diff_paths(git_diff: str) -> list[FileChange]:
     return changes
 
 
-def parse_file_list(git_data: str) -> list[FileChange]:
-    files: list[FileChange] = []
-    for raw_line in git_data.splitlines():
-        line = raw_line.strip()
-        if not line or line.startswith("#"):
-            continue
-
-        status = "added"
-        path = line
-        if line.startswith(("A ", "M ", "D ", "R ")):
-            status = {"A": "added", "M": "modified", "D": "deleted", "R": "renamed"}[line[0]]
-            path = line[2:].strip()
-
-        files.append(FileChange(path=path, status=status, purpose=infer_purpose(path)))
-
-    return files
-
-
-def extract_diff_details(git_diff: str) -> dict[str, list[str]]:
-    details: dict[str, list[str]] = {}
-    current_path: str | None = None
-    in_hunk = False
-
-    for line in git_diff.splitlines():
-        header = DIFF_FILE_HEADER.match(line)
-        if header:
-            current_path = header.group(2)
-            details.setdefault(current_path, [])
-            in_hunk = False
-            continue
-
-        if current_path and HUNK_HEADER.match(line):
-            in_hunk = True
-            details[current_path].append(f"Hunk: `{line}`")
-            continue
-
-        if not in_hunk or current_path is None:
-            continue
-
-        if line.startswith(("+", "-")) and not line.startswith(("+++", "---")):
-            details[current_path].append(f"{'Addition' if line.startswith('+') else 'Removal'}: `{line[1:]}`")
-
-    return details
-
-
-def render_mode_b(files: Iterable[FileChange]) -> str:
+def render_mode_b(files: list[FileChange]) -> str:
     lines = [
         "# Initial Repository Documentation",
         "",
@@ -176,82 +129,53 @@ def render_mode_b(files: Iterable[FileChange]) -> str:
         "## Introduced Files",
         "",
     ]
-
     for item in files:
-        lines.extend(
-            [
-                f"### `{item.path}`",
-                f"- **Status:** {item.status}",
-                f"- **Purpose:** {item.purpose}",
-                "",
-            ]
-        )
-
+        lines.extend([
+            f"### `{item.path}`",
+            f"- **Status:** {item.status}",
+            f"- **Purpose:** {item.purpose}",
+            "",
+        ])
     return "\n".join(lines).rstrip() + "\n"
 
 
-def render_mode_a(metadata: ContextMetadata, files: list[FileChange], git_diff: str) -> str:
-    added = sum(1 for f in files if f.status == "added")
-    modified = sum(1 for f in files if f.status == "modified")
-    deleted = sum(1 for f in files if f.status == "deleted")
+def render_mode_a(metadata: ContextMetadata, files: list[FileChange]) -> str:
+    added = sum(f.status == "added" for f in files)
+    modified = sum(f.status == "modified" for f in files)
+    deleted = sum(f.status == "deleted" for f in files)
 
     lines = [
-        "# Merge Request Analysis & Change Documentation",
+        "# Pull Request Documentation",
         "",
-        (
-            f"This merge from `{metadata.source_branch}` into `{metadata.target_branch}` "
-            f"introduces {added} added, {modified} modified, and {deleted} deleted file(s). "
-            "The changes are grouped below by directory and logical impact."
-        ),
+        "## Branch Information",
+        f"- Source Branch: `{metadata.source_branch}`",
+        f"- Target Branch: `{metadata.target_branch}`",
         "",
-        f"- **Source Branch:** `{metadata.source_branch}`",
-        f"- **Target Branch:** `{metadata.target_branch}`",
+        "## Summary",
+        f"- Added Files: {added}",
+        f"- Modified Files: {modified}",
+        f"- Deleted Files: {deleted}",
+        "",
+        "## Changed Files",
         "",
     ]
 
-    grouped: dict[str, list[FileChange]] = {}
     for item in files:
-        directory = str(Path(item.path).parent)
-        if directory == ".":
-            directory = "(root)"
-        grouped.setdefault(directory, []).append(item)
+        lines.append(f"- `{item.path}` ({item.status})")
 
-    diff_details = extract_diff_details(git_diff)
-
-    for directory in sorted(grouped):
-        lines.extend([f"## `{directory}`", ""])
-        for item in grouped[directory]:
-            lines.extend(
-                [
-                    f"### `{item.path}` ({item.status})",
-                    f"- **Purpose:** {item.purpose}",
-                ]
-            )
-
-            file_details = diff_details.get(item.path, [])
-            if file_details:
-                lines.append("- **Changes:**")
-                for detail in file_details:
-                    lines.append(f"  - {detail}")
-            else:
-                lines.append("- **Changes:** No line-level diff details available.")
-
-            lines.append("")
-
-    return "\n".join(lines).rstrip() + "\n"
+    return "\n".join(lines) + "\n"
 
 
 def generate_documentation(metadata: ContextMetadata, git_data: str) -> str:
-    is_diff = "diff --git" in git_data
-    files = parse_diff_paths(git_data) if is_diff else parse_file_list(git_data)
+    files = parse_diff_paths(git_data)
+
+    if not files:
+        raise ValueError("No file changes found.")
 
     if metadata.is_target_branch_empty:
         return render_mode_b(files)
-
-    if not files and not git_data.strip():
-        raise ValueError("Git data is required when the target branch is not empty.")
-
-    return render_mode_a(metadata, files, git_data if is_diff else "")
+        
+    return render_mode_a(metadata, files)
 
 
 def load_context(context_path: Path) -> tuple[ContextMetadata, str]:
@@ -263,9 +187,6 @@ def load_context(context_path: Path) -> tuple[ContextMetadata, str]:
     )
 
     git_data = payload.get("git_data", "")
-    if not git_data and payload.get("git_data_file"):
-        git_data = Path(payload["git_data_file"]).read_text(encoding="utf-8")
-
     return metadata, git_data
 
 
@@ -276,8 +197,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--context",
         type=Path,
-        default=Path("samples/context.initial.json"),
-        help="Path to JSON context file containing branch metadata and git data.",
+        required=True,
+        help="Path to the merge context JSON file.",
     )
     parser.add_argument(
         "--output",
@@ -314,8 +235,15 @@ def main(argv: list[str] | None = None) -> int:
         print("GEMINI_API_KEY not set; wrote base documentation without enrichment.")
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(markdown, encoding="utf-8")
-    print(f"Wrote documentation to {args.output}")
+    
+    # REQUIREMENT 1: Safe append mode with visual block separation
+    file_exists = args.output.is_file() and args.output.stat().st_size > 0
+    with open(args.output, "a", encoding="utf-8") as f:
+        if file_exists:
+            f.write("\n\n---\n\n")  # Section separator for existing entries
+        f.write(markdown)
+
+    print(f"Appended documentation to {args.output}")
     return 0
 
 

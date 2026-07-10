@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Build merge context JSON from git for documentation generation."""
 
 from __future__ import annotations
@@ -6,7 +5,6 @@ from __future__ import annotations
 import argparse
 import json
 import subprocess
-import sys
 from pathlib import Path
 
 ZERO_SHA = "0" * 40
@@ -92,8 +90,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path("context.json"),
-        help="Output JSON path.",
+        required=True,
+        help="Path to output the context JSON file.",
     )
     return parser
 
