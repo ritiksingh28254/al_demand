@@ -26,3 +26,23 @@ This merge from `feat/runner2` into `main` introduces 0 added, 2 modified, and 0
 ### `ritik_new_file.py` (renamed)
 - **Purpose:** Python source module implementing application or tooling logic.
 - **Changes:** No line-level diff details available.
+
+
+---
+
+# Pull Request Documentation
+
+## Branch Information
+- Source Branch: `feat/runner3`
+- Target Branch: `main`
+
+## Summary
+- Added Files: 0
+- Modified Files: 3
+- Deleted Files: 0
+
+## Changed Files
+
+- `.github/workflows/documentation.yml` (modified)
+- `scripts/build_merge_context.py` (modified)
+- `src/generate_documentation.py` (modified)
