@@ -1,4 +1,4 @@
-"""GitHub Pull/Merge Request documentation generator."""
+"""GitHub Pull/Merge Request documentation generator with timestamps."""
 
 from __future__ import annotations
 
@@ -7,6 +7,7 @@ import json
 import os   
 import re
 import sys
+from datetime import datetime
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -121,8 +122,12 @@ def parse_diff_paths(git_diff: str) -> list[FileChange]:
 
 
 def render_mode_b(files: list[FileChange]) -> str:
+    # Captures current UTC date and time (YYYY-MM-DD HH:MM:SS UTC)
+    current_time = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+    
     lines = [
         "# Initial Repository Documentation",
+        f"*Generated on: {current_time}*",
         "",
         "> **First Commit:** The target branch was empty. All listed files below represent the initial base setup.",
         "",
@@ -143,9 +148,13 @@ def render_mode_a(metadata: ContextMetadata, files: list[FileChange]) -> str:
     added = sum(f.status == "added" for f in files)
     modified = sum(f.status == "modified" for f in files)
     deleted = sum(f.status == "deleted" for f in files)
+    
+    # Captures current UTC date and time (YYYY-MM-DD HH:MM:SS UTC)
+    current_time = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
 
     lines = [
         "# Pull Request Documentation",
+        f"*Generated on: {current_time}*",
         "",
         "## Branch Information",
         f"- Source Branch: `{metadata.source_branch}`",
@@ -234,11 +243,10 @@ def main(argv: list[str] | None = None) -> int:
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
     
-    # REQUIREMENT 1: Safe Append Mode with structural block separation
     file_exists = args.output.is_file() and args.output.stat().st_size > 0
     with open(args.output, "a", encoding="utf-8") as f:
         if file_exists:
-            f.write("\n\n---\n\n")  # Keeps blocks neatly divided visually
+            f.write("\n\n---\n\n")  # Section divider between updates
         f.write(markdown)
 
     print(f"Appended documentation to {args.output}")
