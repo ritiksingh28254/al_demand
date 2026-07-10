@@ -46,3 +46,22 @@ This merge from `feat/runner2` into `main` introduces 0 added, 2 modified, and 0
 - `.github/workflows/documentation.yml` (modified)
 - `scripts/build_merge_context.py` (modified)
 - `src/generate_documentation.py` (modified)
+
+
+---
+
+# Pull Request Documentation
+*Generated on: 2026-07-10 17:08:54 UTC*
+
+## Branch Information
+- Source Branch: `feat/runner3`
+- Target Branch: `main`
+
+## Summary
+- Added Files: 0
+- Modified Files: 1
+- Deleted Files: 0
+
+## Changed Files
+
+- `src/generate_documentation.py` (modified)
