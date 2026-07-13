@@ -21,6 +21,7 @@ from pathlib import Path
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import List
+from datetime import datetime, timezone
 
 # ------------------------------------------------------------
 # Import local modules
@@ -539,10 +540,34 @@ def save_document(
         exist_ok=True,
     )
 
-    output_path.write_text(
-        markdown,
-        encoding="utf-8",
+    timestamp = datetime.now(timezone.utc).strftime(
+        "%Y-%m-%d %H:%M:%S UTC"
     )
+
+    report = (
+        f"# Documentation Report\n"
+        f"**Generated:** {timestamp}\n\n"
+        f"{markdown}\n\n"
+        f"{'=' * 80}\n\n"
+    )
+
+    if output_path.exists():
+
+        old_content = output_path.read_text(
+            encoding="utf-8"
+        )
+
+        output_path.write_text(
+            report + old_content,
+            encoding="utf-8",
+        )
+
+    else:
+
+        output_path.write_text(
+            report,
+            encoding="utf-8",
+        )
 
     print()
     print("=" * 70)
