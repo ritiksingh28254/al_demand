@@ -41,10 +41,10 @@ jobs:
       - name: Build Merge Context
         run: |
           python scripts/build_merge_context.py \
-            --source-branch "${{ github.event.pull_request.head.ref }}" \
-            --target-branch "${{ github.event.pull_request.base.ref }}" \
-            --base-sha "${{ github.event.pull_request.base.sha }}" \
-            --merge-sha "${{ github.event.action == 'closed' && github.event.pull_request.merge_commit_sha || github.event.pull_request.head.sha }}" \
+            --source-branch "feat/testlocal" \
+            --target-branch "main" \
+            --base-sha "bc07009d71ab7f3ac3aa6c4973ade7065cc9e1fa" \
+            --merge-sha "25643b23c7cce6b71053180a7c625ead4f799267" \
             --output context.json
 
       - name: Generate Documentation

@@ -1,0 +1,132 @@
+name: Generate PR & Merge Documentation V2
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - closed
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  generate-documentation:
+    if: github.event.action != 'closed' || github.event.pull_request.merged == true
+
+    runs-on: ubuntu-latest
+
+    env:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+    steps:
+      # ----------------------------------------------------
+      # Checkout
+      # ----------------------------------------------------
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.action == 'closed' && github.event.pull_request.merge_commit_sha || github.head_ref }}
+
+      # ----------------------------------------------------
+      # Python
+      # ----------------------------------------------------
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # ----------------------------------------------------
+      # Install Dependencies
+      # ----------------------------------------------------
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # ----------------------------------------------------
+      # Build Context
+      # ----------------------------------------------------
+      - name: Build Merge Context
+        run: |
+          python scripts/build_merge_context1.py \
+            --source-branch "${{ github.event.pull_request.head.ref }}" \
+            --target-branch "${{ github.event.pull_request.base.ref }}" \
+            --base-sha "${{ github.event.pull_request.base.sha }}" \
+            --merge-sha "${{ github.event.action == 'closed' && github.event.pull_request.merge_commit_sha || github.event.pull_request.head.sha }}" \
+            --output context.json
+
+      # ----------------------------------------------------
+      # Verify Context
+      # ----------------------------------------------------
+      - name: Verify Context
+        run: |
+          echo "========================"
+          echo "Generated Context"
+          echo "========================"
+          ls -la
+          echo ""
+          python -c "import json; d=json.load(open('context.json')); print('Files Changed:', len(d['files'])); print('Summary:', d['summary'])"
+
+      # ----------------------------------------------------
+      # Generate Documentation
+      # ----------------------------------------------------
+      - name: Generate Documentation
+        run: |
+          python src/generate_documentation1.py \
+            --context context.json \
+            --output DOCUMENTATION.md \
+            --chunk-size 10 \
+            --max-chars 35000 \
+            --use-gemini
+
+      # ----------------------------------------------------
+      # Verify Documentation
+      # ----------------------------------------------------
+      - name: Verify Documentation
+        run: |
+          echo "========================"
+          echo "Generated Documentation"
+          echo "========================"
+          ls -la
+          echo ""
+          head -100 DOCUMENTATION.md
+
+      # ----------------------------------------------------
+      # Upload Artifact (PR)
+      # ----------------------------------------------------
+      - name: Upload Documentation Artifact
+        if: github.event.action != 'closed'
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-documentation
+          path: DOCUMENTATION.md
+
+      # ----------------------------------------------------
+      # Commit Documentation (After Merge)
+      # ----------------------------------------------------
+      - name: Commit Documentation
+        if: github.event.action == 'closed' && github.event.pull_request.merged == true
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git fetch origin
+
+          git checkout "${{ github.event.pull_request.base.ref }}"
+
+          git pull origin "${{ github.event.pull_request.base.ref }}"
+
+          git add DOCUMENTATION.md
+
+          if git diff --cached --quiet; then
+            echo "No documentation changes."
+            exit 0
+          fi
+
+          git commit -m "docs: update DOCUMENTATION.md after merge of PR #${{ github.event.pull_request.number }}"
+
+          git push origin "${{ github.event.pull_request.base.ref }}"
