@@ -15,7 +15,7 @@ def enrich_with_gemini(
     target_branch: str,
     is_target_branch_empty: bool,
     api_key: str | None = None,
-    model_name: str = "gemini-2.0-flash",
+    model_name: str = "gemini-2.5-flash",
 ) -> str:
     """Improve documentation using Gemini. Returns original markdown on failure."""
     key = api_key or os.getenv("GEMINI_API_KEY")
