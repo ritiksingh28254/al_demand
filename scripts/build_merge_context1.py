@@ -133,6 +133,34 @@ def get_file_diff(base: str, head: str, file_path: str):
         file_path,
     )
 
+def get_diff_statistics(base: str, head: str):
+
+    output = run_git(
+        "diff",
+        "--numstat",
+        f"{base}..{head}",
+    )
+
+    insertions = 0
+    deletions = 0
+
+    for line in output.splitlines():
+
+        if not line.strip():
+            continue
+
+        added, removed, _ = line.split("\t", 2)
+
+        if added != "-":
+            insertions += int(added)
+
+        if removed != "-":
+            deletions += int(removed)
+
+    return {
+        "insertions": insertions,
+        "deletions": deletions,
+    }
 
 # ---------------------------------------------------------
 # Context Builder
@@ -154,6 +182,8 @@ def build_context(
         )
 
     changed_files = get_changed_files(base_sha, merge_sha)
+
+    diff_statistics = get_diff_statistics(base_sha,merge_sha,)
 
     structured_files = []
 
@@ -192,17 +222,21 @@ def build_context(
 
         "summary": {
 
-            "total_files": len(structured_files),
+    "total_files": len(structured_files),
 
-            "added": counter["added"],
+    "added": counter["added"],
 
-            "modified": counter["modified"],
+    "modified": counter["modified"],
 
-            "deleted": counter["deleted"],
+    "deleted": counter["deleted"],
 
-            "renamed": counter["renamed"],
+    "renamed": counter["renamed"],
 
-        },
+    "lines_added": diff_statistics["insertions"],
+
+    "lines_deleted": diff_statistics["deletions"],
+
+    },
 
         "files": structured_files,
     }

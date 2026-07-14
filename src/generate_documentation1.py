@@ -264,68 +264,38 @@ def build_statistics(files):
 # ------------------------------------------------------------
 
 def render_header(
-    metadata: ContextMetadata,
+    metadata,
     files,
+    summary,
 ):
-
-    stats = build_statistics(files)
 
     lines = []
 
+    lines.append("# Pull Request Documentation")
+    lines.append("")
+
     lines.append(
-        "# Pull Request Documentation"
+        f"Generated : {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}"
     )
 
     lines.append("")
 
-    lines.append(
-        f"Generated : "
-        f"{datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}"
-    )
+    lines.append("## Branch Information")
+    lines.append("")
+    lines.append(f"- Source : `{metadata.source_branch}`")
+    lines.append(f"- Target : `{metadata.target_branch}`")
 
     lines.append("")
-
-    lines.append(
-        "## Branch Information"
-    )
-
+    lines.append("## Repository Change Summary")
     lines.append("")
 
-    lines.append(
-        f"- Source : `{metadata.source_branch}`"
-    )
-
-    lines.append(
-        f"- Target : `{metadata.target_branch}`"
-    )
-
-    lines.append("")
-
-    lines.append(
-        "## File Summary"
-    )
-
-    lines.append("")
-
-    lines.append(
-        f"- Total Files : {len(files)}"
-    )
-
-    lines.append(
-        f"- Added : {stats['added']}"
-    )
-
-    lines.append(
-        f"- Modified : {stats['modified']}"
-    )
-
-    lines.append(
-        f"- Deleted : {stats['deleted']}"
-    )
-
-    lines.append(
-        f"- Renamed : {stats['renamed']}"
-    )
+    lines.append(f"- Total Files Changed : {summary['total_files']}")
+    lines.append(f"- Added Files         : {summary['added']}")
+    lines.append(f"- Modified Files      : {summary['modified']}")
+    lines.append(f"- Deleted Files       : {summary['deleted']}")
+    lines.append(f"- Renamed Files       : {summary['renamed']}")
+    lines.append(f"- Lines Added         : {summary['lines_added']}")
+    lines.append(f"- Lines Deleted       : {summary['lines_deleted']}")
 
     lines.append("")
 
@@ -446,35 +416,24 @@ def build_final_prompt(
 def build_local_document(
     metadata,
     files,
-    summaries,
+    summary,
 ):
 
-    document = []
+    sections = [
 
-    document.append(
         render_header(
             metadata,
             files,
-        )
-    )
+            summary,
+        ),
 
-    document.append("")
-
-    document.append(
         render_changed_files(
             files,
-        )
-    )
+        ),
 
-    document.append("")
+    ]
 
-    document.append(
-        render_intermediate_summaries(
-            summaries,
-        )
-    )
-
-    return "\n".join(document)
+    return "\n\n".join(sections)
 
 
 # ------------------------------------------------------------
@@ -483,6 +442,8 @@ def build_local_document(
 
 def build_ai_document(
     metadata,
+    files,
+    summary,
     summaries,
 ):
 
@@ -491,10 +452,36 @@ def build_ai_document(
         summaries,
     )
 
-    return generate_final_document(
+    ai_document = generate_final_document(
         prompt
     )
 
+    document = []
+
+    # Repository statistics
+    document.append(
+        render_header(
+            metadata,
+            files,
+            summary,
+        )
+    )
+
+    document.append("")
+
+    # Changed file details
+    document.append(
+        render_changed_files(
+            files,
+        )
+    )
+
+    document.append("")
+
+    # AI documentation
+    document.append(ai_document)
+
+    return "\n".join(document)
 
 # ------------------------------------------------------------
 # Markdown Generator
@@ -503,6 +490,7 @@ def build_ai_document(
 def generate_markdown(
     metadata,
     files,
+    summary,
     summaries,
     use_gemini,
 ):
@@ -516,14 +504,16 @@ def generate_markdown(
         )
 
         return build_ai_document(
-            metadata,
-            summaries,
-        )
+        metadata,
+        files,
+        summary,
+        summaries,  
+)
 
     return build_local_document(
         metadata,
         files,
-        summaries,
+        summary,
     )
 
 # ------------------------------------------------------------
@@ -626,9 +616,11 @@ def main(argv=None):
     markdown = generate_markdown(
         metadata,
         files,
+        summary,
         summaries,
         args.use_gemini,
     )
+
 
     save_document(
         args.output,
